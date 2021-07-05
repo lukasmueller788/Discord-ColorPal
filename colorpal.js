@@ -1,7 +1,6 @@
 const color_list = require('color-name-list');
 const namedColors = require('color-name-list');
 const nearestColor = require('nearest-color');
-const {floor, random, typeOf} = require('mathjs');
 const {createCanvas} = require('canvas');
 const {writeFileSync} = require('fs');
 const {getPalette} = require('colorthief');
@@ -18,10 +17,11 @@ const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => {
 const colors = namedColors.reduce((o, {name, hex}) => Object.assign(o, {[name]: hex}), {});
 const nearest = nearestColor.from(colors);
 
+//generates an image with a color palette, given an array of color hexes and names
 function genImage(hexes, names) {
     //creating canvas with width and height
-    const w = 300;
-    const h = 300;
+    const w = 1700;
+    const h = 2150;
     const canvas = createCanvas(w, h);
     const context = canvas.getContext('2d');
 
@@ -29,27 +29,36 @@ function genImage(hexes, names) {
     context.fillStyle = '#36393f'; //discord grey
     context.fillRect(0, 0, w, h);
 
-    //get 9 random colors and give them each a 100x100 block on the canvas
-    for(let x = 0; x < 300; x+=100) {
-        for (let y = 0; y < 300; y+=100) {
-            //get a random color
-            /*var random_color = color_list[floor(random(0, color_list.length))];
-            var color_name = random_color.name;
-            var color_hex = random_color.hex;*/
+    //draw the rectangles and text for the image
+    //500(color square) + 50 (border)
+    for(let x = 50; x < 1650; x+=550) {
+        //500(color square) + 150(name rectangle) + 50(border)
+        for (let y = 50; y < 1650; y+=700) {
 
             var color_name = names[0];
             var color_hex = hexes[0];
 
             //draw the rectangle with the color in the correct position
             context.fillStyle = color_hex;
-            context.fillRect(x, y, 100, 100);
+            context.fillRect(x, y, 500, 500);
 
-            //write the color name over the rectangle
-            context.font = 'bold 10pt serif';
-            context.textAlign = 'center';
-            context.fillStyle = '#000';
-            context.fillText(color_name, x+50, y+50);
+            //draw the white rectangle that will display the hex and color names
+            context.fillStyle = '#ffffff';
+            context.fillRect(x, y+500, 500, 150);
 
+            //write the color hex over the white rectangle
+            context.font = 'bold 45pt arial';
+            context.textAlign = 'start';
+            context.fillStyle = '#000000';
+            context.fillText(color_hex, x+10, y+570);
+
+            //write the color name over the white rectangle, below the hex
+            context.font = '30pt arial';
+            context.textAlign = 'start';
+            context.fillStyle = '#000000';
+            context.fillText(color_name, x+10, y+620);
+
+            //remove the current name and hex from their arrays
             names.shift();
             hexes.shift();
     
@@ -61,6 +70,8 @@ function genImage(hexes, names) {
     writeFileSync('./image.png', buffer);
 }
 
+//gets the prominent colors from an image, given a path to an image and a number of desired colors
+//returns a promise with arrays containing their names and hexes
 function getProminentColors(img, numColors) {
 
     const results = getPalette(img, numColors, 1)
@@ -69,6 +80,7 @@ function getProminentColors(img, numColors) {
             const hexPal = [];
             const namedPal = [];
 
+            //put the color names and hexes in their own arrays
             for (let i = 0; i < palette.length; i++) {
                 const rgb = palette[i];
                 const hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
@@ -86,12 +98,16 @@ function getProminentColors(img, numColors) {
     return results;
 }
 
-
-const results = getProminentColors('./dharron.png', 9);
-results.then(result => {
-    console.log(result[0]);
-    console.log(result[1]);
-    genImage(result[0], result[1]);
-});
+try {
+    const results = getProminentColors('./test_img.jpg', 9);
+    results.then(result => {
+        console.log(result[0]);
+        console.log(result[1]);
+        genImage(result[0], result[1]);
+    });
+} 
+catch (error) {
+    console.log(err);
+}
 
 module.exports = {genImage};
