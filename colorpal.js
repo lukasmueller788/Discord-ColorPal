@@ -1,8 +1,8 @@
-const color_list = require('color-name-list');
 const namedColors = require('color-name-list');
 const nearestColor = require('nearest-color');
 const {createCanvas} = require('canvas');
-const {writeFileSync} = require('fs');
+const {writeFileSync, writeFile} = require('fs');
+const path = require('path');
 const {getPalette} = require('colorthief');
 
 //convert rgb to hex
@@ -18,7 +18,7 @@ const colors = namedColors.reduce((o, {name, hex}) => Object.assign(o, {[name]: 
 const nearest = nearestColor.from(colors);
 
 //generates an image with a color palette, given an array of color hexes and names
-function genImage(hexes, names) {
+function genImage(hexes, names, filePath, outPath) {
     //creating canvas with width and height
     const w = 1700;
     const h = 2150;
@@ -32,7 +32,7 @@ function genImage(hexes, names) {
     //draw the rectangles and text for the image
     //500(color square) + 50 (border)
     for(let x = 50; x < 1650; x+=550) {
-        //500(color square) + 150(name rectangle) + 50(border)
+        //500(color square) + 150(hex/name rectangle) + 50(border)
         for (let y = 50; y < 1650; y+=700) {
 
             var color_name = names[0];
@@ -58,16 +58,22 @@ function genImage(hexes, names) {
             context.fillStyle = '#000000';
             context.fillText(color_name, x+10, y+620);
 
-            //remove the current name and hex from their arrays
-            names.shift();
+            //remove the current hex and name from their arrays
             hexes.shift();
+            names.shift();
     
         }
     }
 
+    //output image name is just the original image's name + '_pal'
+    //could just use regex here but eh
+    const outFile = path.basename(filePath).split('.').slice(0, -1).join('.') + '_pal.png';
+
+    console.log(path.join(outPath, outFile));
+
     //write to file
     const buffer = canvas.toBuffer('image/png');
-    writeFileSync('./image.png', buffer);
+    writeFileSync(path.join(outPath, outFile), buffer);
 }
 
 //gets the prominent colors from an image, given a path to an image and a number of desired colors
@@ -98,16 +104,18 @@ function getProminentColors(img, numColors) {
     return results;
 }
 
-try {
-    const results = getProminentColors('./test_img.jpg', 9);
-    results.then(result => {
-        console.log(result[0]);
-        console.log(result[1]);
-        genImage(result[0], result[1]);
-    });
-} 
-catch (error) {
-    console.log(err);
+function createPal(filePath, outPath) {
+    try {
+        const results = getProminentColors(filePath, 9);
+        results.then(result => {
+            /*console.log(result[0]);
+            console.log(result[1]);*/
+            genImage(result[0], result[1], filePath, outPath);
+        });
+    } 
+    catch (err) {
+        console.log(err);
+    }
 }
 
-module.exports = {genImage};
+module.exports = {createPal};

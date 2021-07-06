@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {genImage} = require('./color_tests');
+const {genImage} = require('./colorpal');
 const Discord = require("discord.js");
 
 const client = new Discord.Client();
