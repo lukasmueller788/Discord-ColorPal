@@ -1,7 +1,7 @@
 const namedColors = require('color-name-list');
 const nearestColor = require('nearest-color');
 const {createCanvas} = require('canvas');
-const {writeFileSync, writeFile} = require('fs');
+const {writeFileSync} = require('fs');
 const path = require('path');
 const {getPalette} = require('colorthief');
 
@@ -105,11 +105,10 @@ function getProminentColors(img, numColors) {
 }
 
 function createPal(filePath, outPath) {
+    
     try {
         const results = getProminentColors(filePath, 9);
         results.then(result => {
-            /*console.log(result[0]);
-            console.log(result[1]);*/
             genImage(result[0], result[1], filePath, outPath);
         });
     } 

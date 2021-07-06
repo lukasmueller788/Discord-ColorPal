@@ -22,6 +22,8 @@ fs.readdir(dirPath, function(err, files) {
         console.log(err);
     }
     else {
+
+        //run createPal() on each image
         files.forEach(function (file) {
 
             colorPal.createPal(path.join(__dirname, 'images', file,), outPath);
